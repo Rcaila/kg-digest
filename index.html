@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KG Digest">
+<title>Kins Guard — Command Digest</title>
+<style>
+  :root {
+    --red: #C0392B;
+    --red-dark: #96281B;
+    --red-light: #FADBD8;
+    --charcoal: #2C3E50;
+    --charcoal-light: #34495E;
+    --white: #FFFFFF;
+    --surface: #F8F9FA;
+    --surface2: #EAECEE;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1A1A1A;
+    --text-sec: #555;
+    --text-hint: #888;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --b-mail: #EBF5FB; --t-mail: #1A5276;
+    --b-cal: #EAFAF1; --t-cal: #1D6A39;
+    --b-ceo: #FEF9E7; --t-ceo: #7D6608;
+    --b-cto: #F5EEF8; --t-cto: #4A235A;
+    --b-per: #FEF0F0; --t-per: #922B21;
+    --b-act: #FDEDEC; --t-act: #922B21;
+    --high: #FDEDEC; --high-t: #922B21;
+    --med: #FEF9E7; --med-t: #7D6608;
+    --low: #EAFAF1; --low-t: #1D6A39;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--surface); color: var(--text); font-size: 15px; }
+
+  /* Header */
+  .app-header {
+    background: var(--charcoal);
+    color: var(--white);
+    padding: 14px 16px 10px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .logo-dot { width: 32px; height: 32px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; flex-shrink: 0; }
+  .app-title { font-size: 17px; font-weight: 600; line-height: 1.2; }
+  .app-sub { font-size: 11px; opacity: 0.65; margin-top: 1px; }
+  .btn-run { background: var(--red); border: none; color: white; border-radius: 22px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; transition: background 0.15s; }
+  .btn-run:active { background: var(--red-dark); transform: scale(0.97); }
+  .btn-run:disabled { opacity: 0.55; pointer-events: none; }
+  .ts-row { font-size: 11px; opacity: 0.55; margin-top: 6px; }
+  .pill-bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); color: white; border-radius: 20px; padding: 5px 12px; font-size: 12px; cursor: pointer; transition: background 0.15s; }
+  .pill:active { background: rgba(255,255,255,0.25); }
+  .pill.active { background: var(--red); border-color: var(--red); }
+
+  /* Content */
+  .content { padding: 12px 12px 80px; }
+
+  /* Panels */
+  .panel { background: white; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 10px; overflow: hidden; }
+  .panel-hdr { padding: 12px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+  .panel-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .panel-title { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+  .panel-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .panel-chev { font-size: 18px; color: var(--text-hint); transition: transform 0.2s; }
+  .panel-chev.open { transform: rotate(180deg); }
+  .panel-body { display: none; border-top: 1px solid var(--border); }
+  .panel-body.open { display: block; }
+
+  /* Item rows */
+  .item { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .item:last-child { border-bottom: none; }
+  .item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+  .item-from { font-size: 12px; color: var(--text-hint); margin-bottom: 3px; }
+  .item-body { font-size: 13px; color: var(--text-sec); line-height: 1.45; }
+  .item-action { font-size: 13px; color: var(--charcoal); margin-top: 5px; font-weight: 500; }
+  .itag { font-size: 11px; padding: 2px 7px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
+  .t-h { background: var(--high); color: var(--high-t); }
+  .t-m { background: var(--med); color: var(--med-t); }
+  .t-l { background: var(--low); color: var(--low-t); }
+  .t-i { background: var(--b-cal); color: var(--t-cal); }
+
+  /* Action table */
+  .act-table { width: 100%; border-collapse: collapse; }
+  .act-table th { font-size: 11px; font-weight: 600; color: var(--text-hint); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--surface); text-transform: uppercase; letter-spacing: 0.04em; }
+  .act-row td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+  .act-row:last-child td { border-bottom: none; }
+  .act-row.done td { opacity: 0.35; }
+  .act-cb { width: 20px; height: 20px; cursor: pointer; accent-color: var(--red); flex-shrink: 0; }
+  .act-text { font-size: 13px; color: var(--text); }
+  .src-tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 600; display: inline-block; }
+  .s-email { background: var(--b-mail); color: var(--t-mail); }
+  .s-calendar { background: var(--b-cal); color: var(--t-cal); }
+  .s-ceo { background: var(--b-ceo); color: var(--t-ceo); }
+  .s-cto { background: var(--b-cto); color: var(--t-cto); }
+  .s-personal { background: var(--b-per); color: var(--t-per); }
+  .p-h { background: var(--high); color: var(--high-t); font-size:11px; padding:2px 7px; border-radius:10px; font-weight:600; display:inline-block; }
+  .p-m { background: var(--med); color: var(--med-t); font-size:11px; padding:2px 7px; border-radius:10px; font-weight:600; display:inline-block; }
+  .p-l { background: var(--low); color: var(--low-t); font-size:11px; padding:2px 7px; border-radius:10px; font-weight:600; display:inline-block; }
+  .remark-inp { width: 100%; border: 1px solid var(--border-strong); border-radius: 6px; padding: 5px 8px; font-size: 12px; color: var(--text); background: var(--surface); font-family: inherit; }
+
+  /* Setup & Notes sheets */
+  .sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; }
+  .sheet-overlay.open { display: flex; align-items: flex-end; }
+  .sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px 16px 40px; }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 16px; }
+  .sheet-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .sheet-sub { font-size: 13px; color: var(--text-hint); margin-bottom: 16px; line-height: 1.4; }
+  .field-label { font-size: 12px; font-weight: 600; color: var(--text-sec); margin-bottom: 5px; margin-top: 14px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-label:first-of-type { margin-top: 0; }
+  .field-row { display: flex; gap: 8px; }
+  .key-inp { flex: 1; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 11px 12px; font-size: 14px; color: var(--text); font-family: monospace; background: var(--surface); }
+  .key-inp:focus { outline: none; border-color: var(--red); }
+  textarea.notes-inp { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--text); background: var(--surface); font-family: inherit; resize: vertical; min-height: 80px; line-height: 1.45; }
+  textarea.notes-inp:focus { outline: none; border-color: var(--charcoal); }
+  .key-status { font-size: 12px; margin-top: 5px; }
+  .ks-ok { color: #1D6A39; } .ks-warn { color: #7D6608; } .ks-err { color: #922B21; }
+  .sheet-hint { font-size: 12px; color: var(--text-hint); margin-top: 6px; line-height: 1.45; background: var(--surface); border-radius: 8px; padding: 8px 10px; }
+  .btn-save { background: var(--charcoal); color: white; border: none; border-radius: var(--radius); padding: 13px 0; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 18px; transition: background 0.15s; }
+  .btn-save:active { background: var(--charcoal-light); }
+  .btn-close-sheet { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 13px 0; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
+
+  /* Error / empty states */
+  .err-box { background: var(--red-light); border: 1px solid #F1948A; border-radius: var(--radius); padding: 12px 14px; font-size: 13px; color: var(--red-dark); margin-bottom: 10px; display: flex; gap: 8px; align-items: flex-start; }
+  .init-state { text-align: center; padding: 48px 20px; color: var(--text-hint); }
+  .init-icon { font-size: 48px; margin-bottom: 12px; }
+  .init-title { font-size: 16px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
+  .init-body { font-size: 13px; line-height: 1.5; }
+  .loading-state { text-align: center; padding: 48px 20px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--surface2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--text-hint); }
+  .empty-row { padding: 12px 14px; font-size: 13px; color: var(--text-hint); font-style: italic; }
+
+  /* Section dividers */
+  .sec-label { font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.06em; padding: 16px 4px 6px; }
+
+  /* FAB bottom bar */
+  .fab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 10px 16px 20px; display: flex; gap: 10px; z-index: 100; }
+  .fab-btn { flex: 1; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); border-radius: var(--radius); padding: 11px 0; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .fab-btn:active { background: var(--surface2); }
+  .fab-run { flex: 2; background: var(--red); border-color: var(--red); color: white; }
+  .fab-run:active { background: var(--red-dark); }
+  .fab-run:disabled { opacity: 0.55; pointer-events: none; }
+
+  /* Success flash */
+  .flash { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--charcoal); color: white; border-radius: 20px; padding: 9px 18px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 300; }
+  .flash.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="header-top">
+    <div class="logo-row">
+      <div class="logo-dot">KG</div>
+      <div>
+        <div class="app-title">Command Digest</div>
+        <div class="app-sub">Kins Guard Limited — Port Moresby</div>
+      </div>
+    </div>
+    <button class="btn-run" id="headerRunBtn" onclick="runDigest()">&#9654; Run</button>
+  </div>
+  <div class="ts-row" id="ts">Tap Run Digest to fetch your briefing</div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+  <div id="err-area"></div>
+  <div id="main-content">
+    <div class="init-state">
+      <div class="init-icon">&#128196;</div>
+      <div class="init-title">Welcome, Richard</div>
+      <div class="init-body">
+        Tap <strong>Setup</strong> to enter your API key,<br>
+        then tap <strong>Run Digest</strong> to get your briefing.
+      </div>
+    </div>
+  </div>
+
+  <!-- Action tracker (hidden until first run) -->
+  <div id="action-wrap" style="display:none;">
+    <div class="sec-label">&#10003; Action items tracker</div>
+    <div class="panel">
+      <div class="panel-hdr" onclick="togPanel('act-body','act-chev')">
+        <div class="panel-icon" style="background:#FDEDEC; font-size:18px;">&#9989;</div>
+        <div class="panel-title">All action items</div>
+        <span class="panel-badge" id="act-badge" style="background:#FDEDEC;color:#922B21;">0 open</span>
+        <div class="panel-chev open" id="act-chev">&#8964;</div>
+      </div>
+      <div class="panel-body open" id="act-body">
+        <table class="act-table">
+          <thead><tr>
+            <th style="width:30px;"></th>
+            <th>Action</th>
+            <th style="width:70px;">Source</th>
+            <th style="width:60px;">Priority</th>
+          </tr></thead>
+          <tbody id="act-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-hint);text-align:center;padding:4px 0 8px;">Ticked items are saved locally and won't be raised again next run.</div>
+  </div>
+</div>
+
+<!-- Bottom FAB bar -->
+<div class="fab-bar">
+  <button class="fab-btn" onclick="openSetup()">&#9881; Setup</button>
+  <button class="fab-btn" onclick="openNotes()">&#128221; Notes</button>
+  <button class="fab-btn fab-run" id="fabRunBtn" onclick="runDigest()">&#9654; Run Digest</button>
+</div>
+
+<!-- Flash message -->
+<div class="flash" id="flash"></div>
+
+<!-- Setup Sheet -->
+<div class="sheet-overlay" id="setup-overlay" onclick="closeSetupOutside(event)">
+  <div class="sheet" id="setup-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">&#128273; API Key Setup</div>
+    <div class="sheet-sub">Enter your Anthropic API key. Get it from console.anthropic.com → API Keys.</div>
+    <div class="field-label">Anthropic API key</div>
+    <div class="field-row">
+      <input class="key-inp" type="password" id="apiKeyInp" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+      <button class="fab-btn" style="width:44px;flex:none;padding:0;" onclick="toggleKeyVis()" aria-label="Show key">&#128065;</button>
+    </div>
+    <div class="key-status" id="key-status"></div>
+    <div class="sheet-hint">
+      Your key is saved on this device only (localStorage). It is sent directly to Anthropic — nowhere else.<br><br>
+      Cost per Digest run: ~USD $0.004 (~K0.01). USD $5 top-up lasts ~20 months.
+    </div>
+    <button class="btn-save" onclick="saveKey()">Save API Key</button>
+    <button class="btn-close-sheet" onclick="closeSetup()">Close</button>
+  </div>
+</div>
+
+<!-- Notes Sheet -->
+<div class="sheet-overlay" id="notes-overlay" onclick="closeNotesOutside(event)">
+  <div class="sheet" id="notes-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">&#128221; Standing Briefing Notes</div>
+    <div class="sheet-sub">These notes feed into every Digest run. Update them whenever something changes in your CEO or CTO Projects.</div>
+    <div class="field-label">CEO Project — standing items</div>
+    <textarea class="notes-inp" id="ceo-notes" rows="4" placeholder="e.g. CIT 2025 K3,088 outstanding. ASIC renewal 19 Jul 2026. SWT Month 7 due 7 Jul. Kina Bank corporate banking setup in progress..."></textarea>
+    <div class="field-label">Chief Tax Officer — open items</div>
+    <textarea class="notes-inp" id="cto-notes" rows="4" placeholder="e.g. GST June return due 21 Jul. SWT 51 staff manual calc ongoing. TIN to be confirmed. 2025 CIT balance statement to upload..."></textarea>
+    <div class="field-label">Personal — birthdays, family, health, village</div>
+    <textarea class="notes-inp" id="per-notes" rows="3" placeholder="e.g. Mum's birthday 12 July. School fees end July. Delena village trip August. Annual medical overdue..."></textarea>
+    <button class="btn-save" onclick="saveNotes()">Save Notes</button>
+    <button class="btn-close-sheet" onclick="closeNotes()">Close</button>
+  </div>
+</div>
+
+<script>
+// ── Storage keys ──
+const K = {
+  apiKey: 'kg_apikey',
+  notes:  'kg_notes',
+  done:   'kg_done',
+  remarks:'kg_remarks'
+};
+
+// ── State ──
+let allActions = [];
+let done    = JSON.parse(localStorage.getItem(K.done)    || '[]');
+let remarks = JSON.parse(localStorage.getItem(K.remarks) || '{}');
+
+// ── Helpers ──
+function $(id){ return document.getElementById(id); }
+function saveDone(){ localStorage.setItem(K.done, JSON.stringify(done)); }
+function saveRemarks(){ localStorage.setItem(K.remarks, JSON.stringify(remarks)); }
+function showFlash(msg){
+  const f=$('flash'); f.textContent=msg; f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'),2200);
+}
+function togPanel(bodyId, chevId){
+  $(bodyId)?.classList.toggle('open');
+  $(chevId)?.classList.toggle('open');
+}
+
+// ── Setup sheet ──
+function openSetup(){
+  const k=localStorage.getItem(K.apiKey)||'';
+  $('apiKeyInp').value=k;
+  setKeyStatus(k ? 'Key loaded from this device.' : '', k ? 'ok' : '');
+  $('setup-overlay').classList.add('open');
+}
+function closeSetup(){ $('setup-overlay').classList.remove('open'); }
+function closeSetupOutside(e){ if(e.target===$('setup-overlay')) closeSetup(); }
+function toggleKeyVis(){
+  const i=$('apiKeyInp'); i.type=i.type==='password'?'text':'password';
+}
+function setKeyStatus(msg,type){
+  const el=$('key-status');
+  el.className='key-status'+(type?' ks-'+type:'');
+  el.textContent=msg;
+}
+function saveKey(){
+  const v=$('apiKeyInp').value.trim();
+  if(!v){ setKeyStatus('Please paste your key first.','warn'); return; }
+  if(!v.startsWith('sk-ant-')){ setKeyStatus('Key should start with sk-ant- — double check it.','err'); return; }
+  localStorage.setItem(K.apiKey, v);
+  setKeyStatus('Saved on this device.','ok');
+  setTimeout(closeSetup, 900);
+  showFlash('API key saved ✓');
+}
+
+// ── Notes sheet ──
+function openNotes(){
+  const s=JSON.parse(localStorage.getItem(K.notes)||'{}');
+  $('ceo-notes').value=s.ceo||'';
+  $('cto-notes').value=s.cto||'';
+  $('per-notes').value=s.per||'';
+  $('notes-overlay').classList.add('open');
+}
+function closeNotes(){ $('notes-overlay').classList.remove('open'); }
+function closeNotesOutside(e){ if(e.target===$('notes-overlay')) closeNotes(); }
+function saveNotes(){
+  localStorage.setItem(K.notes, JSON.stringify({
+    ceo: $('ceo-notes').value,
+    cto: $('cto-notes').value,
+    per: $('per-notes').value
+  }));
+  setTimeout(closeNotes, 300);
+  showFlash('Briefing notes saved ✓');
+}
+function getNotes(){ return JSON.parse(localStorage.getItem(K.notes)||'{}'); }
+
+// ── Action tracker ──
+function markDone(id, cb){
+  const row=document.getElementById('ar-'+id);
+  if(cb.checked){ if(!done.includes(id)) done.push(id); row?.classList.add('done'); }
+  else { done=done.filter(x=>x!==id); row?.classList.remove('done'); }
+  saveDone(); updateBadge();
+}
+function setRemark(id,val){ remarks[id]=val; saveRemarks(); }
+function updateBadge(){
+  const open=allActions.filter(a=>!done.includes(a.id)).length;
+  $('act-badge').textContent=open+' open';
+}
+
+const SRC_CLS={ email:'s-email', calendar:'s-calendar', ceo:'s-ceo', cto:'s-cto', personal:'s-personal' };
+const PRI_CLS={ high:'p-h', medium:'p-m', low:'p-l' };
+const URG_CLS={ high:'t-h', medium:'t-m', low:'t-l' };
+
+function utag(u){ return u?`<span class="itag ${URG_CLS[u]||'t-l'}">${u||''}</span>`:''; }
+
+function renderActions(items){
+  allActions=items;
+  const tb=$('act-tbody'); tb.innerHTML='';
+  items.forEach(a=>{
+    const isDone=done.includes(a.id);
+    const tr=document.createElement('tr');
+    tr.className='act-row'+(isDone?' done':'');
+    tr.id='ar-'+a.id;
+    tr.innerHTML=`
+      <td style="text-align:center;padding-top:12px;">
+        <input type="checkbox" class="act-cb" ${isDone?'checked':''} onchange="markDone('${a.id}',this)">
+      </td>
+      <td>
+        <div class="act-text">${a.action}</div>
+        <input class="remark-inp" type="text" placeholder="add note..." value="${remarks[a.id]||''}" onchange="setRemark('${a.id}',this.value)" style="margin-top:5px;">
+      </td>
+      <td><span class="src-tag ${SRC_CLS[a.source]||'s-email'}">${a.source}</span></td>
+      <td><span class="${PRI_CLS[a.priority]||'p-m'}">${a.priority}</span></td>`;
+    tb.appendChild(tr);
+  });
+  updateBadge();
+  $('action-wrap').style.display='block';
+}
+
+// ── Render Digest ──
+function mkPanel(id, chevId, iconHtml, iconBg, title, badgeBg, badgeColor, badgeText, inner){
+  return `<div class="panel">
+    <div class="panel-hdr" onclick="togPanel('${id}','${chevId}')">
+      <div class="panel-icon" style="background:${iconBg};">${iconHtml}</div>
+      <div class="panel-title">${title}</div>
+      <span class="panel-badge" style="background:${badgeBg};color:${badgeColor};">${badgeText}</span>
+      <div class="panel-chev open" id="${chevId}">&#8964;</div>
+    </div>
+    <div class="panel-body open" id="${id}">${inner}</div>
+  </div>`;
+}
+
+function mkItem(title, urgency, subs){
+  return `<div class="item">
+    <div class="item-title">${title} ${utag(urgency)}</div>
+    ${subs.filter(Boolean).map((s,i)=>`<div class="${i===0&&s.startsWith('From:')?'item-from':'item-body'}">${s}</div>`).join('')}
+  </div>`;
+}
+
+function renderDigest(d){
+  const mc=$('main-content'); let html='';
+
+  html+=`<div class="sec-label">&#128188; Business digest</div>`;
+
+  const emails=d.emails||[];
+  let eInner=emails.length
+    ? emails.map(e=>mkItem(e.subject,e.urgency,[`From: ${e.from}`,e.summary,e.action?`&#9656; <strong>Action:</strong> ${e.action}`:''])).join('')
+    : `<div class="empty-row">Inbox clear — no action emails.</div>`;
+  html+=mkPanel('s-email','chev-email','&#9993;','var(--b-mail)','Emails — action required','var(--b-mail)','var(--t-mail)',emails.length+' items',eInner);
+
+  const cal=d.calendar||[];
+  let cInner=cal.length
+    ? cal.map(c=>mkItem(c.title,null,[`<span class="itag t-i">${c.when}</span>${c.location?' &nbsp;&#128205; '+c.location:''}`,c.notes])).join('')
+    : `<div class="empty-row">No events this week.</div>`;
+  html+=mkPanel('s-cal','chev-cal','&#128197;','var(--b-cal)','Calendar — next 7 days','var(--b-cal)','var(--t-cal)',cal.length+' events',cInner);
+
+  const ceo=d.ceo_report||[];
+  let ceoInner=ceo.length
+    ? ceo.map(r=>mkItem(r.item,r.urgency,[r.context])).join('')
+    : `<div class="empty-row">No CEO-level items flagged.</div>`;
+  html+=mkPanel('s-ceo','chev-ceo','&#128084;','var(--b-ceo)','CEO report — your attention','var(--b-ceo)','var(--t-ceo)',ceo.length+' items',ceoInner);
+
+  const cto=d.cto_report||[];
+  let ctoInner=cto.length
+    ? cto.map(r=>mkItem(r.item,r.urgency,[r.context])).join('')
+    : `<div class="empty-row">No CTO items flagged.</div>`;
+  html+=mkPanel('s-cto','chev-cto','&#128203;','var(--b-cto)','Chief Tax Officer report','var(--b-cto)','var(--t-cto)',cto.length+' items',ctoInner);
+
+  html+=`<div class="sec-label">&#128100; Personal digest</div>`;
+
+  const per=d.personal||[];
+  let perInner=per.length
+    ? per.map(p=>mkItem(p.item,p.urgency,[p.notes])).join('')
+    : `<div class="empty-row">No personal items flagged.</div>`;
+  html+=mkPanel('s-per','chev-per','&#10084;','var(--b-per)','Personal reminders','var(--b-per)','var(--t-per)',per.length+' items',perInner);
+
+  mc.innerHTML=html;
+  if(d.action_items?.length) renderActions(d.action_items);
+}
+
+// ── System prompt ──
+const SYSTEM=`You are the Chief of Staff for Richard Aila, Director of Kins Guard Limited, Port Moresby, Papua New Guinea.
+
+Return ONLY valid JSON — no markdown, no backticks, no preamble. Schema:
+{
+  "emails":[{"id":"e1","from":"sender name","subject":"subject line","summary":"one sentence summary","action":"what Richard needs to do","urgency":"high|medium|low"}],
+  "calendar":[{"id":"c1","title":"event title","when":"e.g. Today 2pm or Thu 28 Jun","location":"location if any","notes":"any prep or action needed"}],
+  "ceo_report":[{"id":"r1","item":"item needing Director decision or sign-off","context":"why it matters","urgency":"high|medium|low"}],
+  "cto_report":[{"id":"t1","item":"tax or compliance item","context":"details and deadline","urgency":"high|medium|low"}],
+  "personal":[{"id":"p1","item":"personal reminder or event","notes":"details","urgency":"high|medium|low"}],
+  "action_items":[{"id":"a1","action":"one clear action sentence","source":"email|calendar|ceo|cto|personal","priority":"high|medium|low"}]
+}
+
+Rules:
+- Ignore newsletters, automated Google security notifications, Claude sign-in emails, Anthropic receipts.
+- CEO report: items needing Richard's personal decision. Always include known standing items from CEO notes provided.
+- CTO report: IRC tax filings, SWT, GST, CIT, superannuation. Include standing CTO notes provided.
+- Personal: birthdays, family, health, village, personal finance. From personal notes provided.
+- Action items: one clear action per item drawn from ALL sections including standing notes.
+- Be concise. One sentence per field. No filler.`;
+
+// ── Run Digest ──
+async function runDigest(){
+  const key=localStorage.getItem(K.apiKey);
+  if(!key){
+    $('err-area').innerHTML=`<div class="err-box">&#9888; No API key found. Tap <strong>Setup</strong> to add your key first.</div>`;
+    return;
+  }
+  $('err-area').innerHTML='';
+  setRunning(true);
+  $('main-content').innerHTML=`<div class="loading-state"><div class="spinner"></div><div class="loading-text">Fetching your emails and calendar...</div></div>`;
+  $('action-wrap').style.display='none';
+
+  const notes=getNotes();
+  const notesBlock=`CEO Project notes: ${notes.ceo||'None added yet.'}\nCTO Project notes: ${notes.cto||'None added yet.'}\nPersonal notes: ${notes.per||'None added yet.'}`;
+  const today=new Date().toLocaleDateString('en-PG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-beta':'mcp-client-2025-04-04'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:2000,
+        system:SYSTEM,
+        messages:[{role:'user',content:`Today is ${today} Port Moresby time.\n\n${notesBlock}\n\nCheck Gmail inbox for recent unread and action-needed emails. Check Google Calendar for events in the next 7 days. Generate the full Command Digest JSON now.`}],
+        mcp_servers:[
+          {type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail-mcp'},
+          {type:'url',url:'https://calendarmcp.googleapis.com/mcp/v1',name:'calendar-mcp'}
+        ]
+      })
+    });
+
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err?.error?.message||`Server error ${res.status}`);
+    }
+
+    const data=await res.json();
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean=txt.replace(/```json|```/g,'').trim();
+
+    let parsed;
+    try{ parsed=JSON.parse(clean); }
+    catch(e){
+      $('err-area').innerHTML=`<div class="err-box">&#9888; Response received but could not be parsed. Please try again.</div>`;
+      $('main-content').innerHTML='';
+      setRunning(false); return;
+    }
+
+    renderDigest(parsed);
+    $('ts').textContent='Last run: '+new Date().toLocaleTimeString('en-PG',{hour:'2-digit',minute:'2-digit'})+' · '+today;
+    showFlash('Digest updated ✓');
+
+  } catch(e){
+    let msg=e.message||'Unknown error';
+    let hint='';
+    if(msg.includes('401')||msg.toLowerCase().includes('invalid x-api-key')) hint=' Your API key may be wrong — check Setup.';
+    else if(msg.includes('429')) hint=' Rate limit hit — wait a moment and try again.';
+    else if(msg.includes('Failed to fetch')||msg.includes('NetworkError')) hint=' Check your mobile data or WiFi connection.';
+    $('err-area').innerHTML=`<div class="err-box">&#9888; ${msg}.${hint}</div>`;
+    $('main-content').innerHTML='';
+  }
+  setRunning(false);
+}
+
+function setRunning(on){
+  $('headerRunBtn').disabled=on;
+  $('fabRunBtn').disabled=on;
+  $('headerRunBtn').textContent=on?'...' :'▶ Run';
+  $('fabRunBtn').textContent=on?'Running...' :'▶ Run Digest';
+}
+
+// ── Init: load key status on open ──
+window.addEventListener('load',()=>{
+  const k=localStorage.getItem(K.apiKey);
+  if(k) $('ts').textContent='API key ready · Tap Run Digest to start';
+});
+</script>
+</body>
+</html>
